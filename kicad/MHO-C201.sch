@@ -252,7 +252,7 @@ SDA
 Text Label 4850 2900 1    50   ~ 0
 SCL
 Wire Wire Line
-	4550 2700 4550 3550
+	4550 2700 4550 3050
 Text Label 4550 2900 1    50   ~ 0
 ADDR
 Text Label 4700 2950 1    50   ~ 0
@@ -355,8 +355,6 @@ Wire Wire Line
 Wire Wire Line
 	2450 2800 2450 2550
 Wire Wire Line
-	2450 2550 3400 2550
-Wire Wire Line
 	2150 2800 2150 2350
 Wire Wire Line
 	1850 2800 1850 2150
@@ -437,10 +435,6 @@ NoConn ~ 2000 3500
 Wire Wire Line
 	2300 3250 2300 3500
 NoConn ~ 2300 3500
-Text Notes 3200 2700 0    79   ~ 0
-???
-Text Notes 4600 3550 0    79   ~ 0
-???
 NoConn ~ 2000 1800
 NoConn ~ 2300 1800
 NoConn ~ 2300 1500
@@ -454,21 +448,21 @@ Wire Wire Line
 Wire Wire Line
 	2300 2450 2300 2800
 Text Label 1400 4350 0    50   ~ 0
-+11.6V
+VHL+11.6V
 Text Label 1400 4250 0    50   ~ 0
-+3.4V
-Text Label 1450 4650 0    50   ~ 0
-?
-Text Label 1450 4750 0    50   ~ 0
-?
-Text Label 1450 4850 0    50   ~ 0
-?
-Text Label 1450 4950 0    50   ~ 0
-?
-Text Label 1450 5050 0    50   ~ 0
-?
-Text Label 1450 5150 0    50   ~ 0
-?
+VDL+3.4V
+Text Label 1400 4650 0    50   ~ 0
+SHD_N
+Text Label 1400 4750 0    50   ~ 0
+RST_N
+Text Label 1400 4850 0    50   ~ 0
+SDA
+Text Label 1400 4950 0    50   ~ 0
+SCL
+Text Label 1400 5050 0    50   ~ 0
+CSB
+Text Label 1400 5150 0    50   ~ 0
+BUSY_N
 Text Notes 1950 1700 1    50   ~ 0
 R1
 Text Notes 2250 1700 1    50   ~ 0
@@ -477,4 +471,12 @@ Wire Wire Line
 	3200 4250 3200 4600
 Wire Wire Line
 	3200 4600 3250 4600
+Text Label 1400 4450 0    50   ~ 0
+GND
+Text Label 1400 4550 0    50   ~ 0
+VIN
+Text Notes 1100 5050 1    50   ~ 0
+HT16E07 (probably)
+NoConn ~ 2450 2550
+NoConn ~ 4550 3050
 $EndSCHEMATC
