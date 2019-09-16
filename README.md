@@ -1,14 +1,5 @@
-## TODO
-
-- [ ] Compare LUTs
-  - [ ] Why Vcom, KK, KW LUTs but no WK, WW LUTs?
-- [ ] Map display segment to DTM data
-- [ ] Why two FRC commands on initial power on and only 1 for updates?
-
 
 # MHO-C201 Teardown
-
-![product-image](images/product-image.jpg)
 
 ## Schematic
 
@@ -41,29 +32,29 @@
        - Measured voltage 11.6V
     3. GND
     4. VDD
-       - Datasheet: 2.4 to 3.6V
+
+- Datasheet: 2.4 to 3.6V
 
     5. SHD_N
-       - From datasheet:
+   - From datasheet:
 
-         - > Charge pump enable pin – low shutdown
+     - > Charge pump enable pin – low shutdown
 
     6. RST_N
     7. SDA (data)
     8. SCL (clock)
     9. CSB (latch) (Low during data clock pulses, pulses high after 9 clocks pulses)
-    10. BUSY_N
+10. BUSY_N
 
-        - From datasheet:
+    - From datasheet:
 
           - > Busy flag output pin
             > BUSY_N="0" – driver is busy, driver is refreshing the display
             > BUSY_N="1" – driver is idle, host can send command/data to driver
-
+    - Based on observation, BUSY_N is pulled down by the display when busy, and floating when idle so the MCU pin connected to BUSY_N should have a pull-up resistor.
 
 - **MCU** at **U2**: HT66F0182 [datasheet](datasheets/HT66F0182v110.pdf)
-
-  - Pins
+- Pins
       1. GND
       2. Display P1-7
       3. Not connected
@@ -122,28 +113,28 @@
 
 ### On startup the stock MCU:
 
+The MCU sends updates the display 3 times on startup:
+
 1. MCU powers on
 2.  After 500 ms, sets Display SHD_N high
-3. Goes through sequence of steps to turn on all segments (all black) (see below for "**Steps to Update Display**")
+3. Update #1: Full clear. This update turns on then off all segments using special LUT values (see below for **Update Display Sequence**)
    - BUSY_N is low for 3,000 ms between after sending DRF
-4. 100ms after sending first CPOF pulse RST_N low for 0.5ms
+4. Wait 100ms
 5. During this 100ms the MCU reads temp from Sensor
    1. Immediately after DRF, MCU writes "Single Shot Data Acquisition Mode" command to sensor: 0x2416 (no clock stretching, low repeatability)
    2. 86 ms later (maybe triggered by Sensor ALERT line, I didn't have logic analyzer hooked to this line), read 6 bytes from Sensor, 2-byte  temperature, 1-byte checksum, 2 byte humidity, 1-byte checksum.
    3. No other messages between MCU and Sensor observed in the first 10s after power on.
-6. Goes through steps to turn off all segments (all white)
+6. Update #2: Set off segments. After Update #1 all segments are off so this update doesn't seem necessary.
    - This time BUSY_N is low for 500 ms after DRF
-7. Sends commands to turn  on some segments (to show temp/humidity), BUSY_N is low for 1,000 ms
+7. Update #3: Set on segments. This turns on some segments (to show temp/humidity)
    1. This time BUSY_N is low for 1,00 ms after DRF
 8. Sends final (third) CPOF
-9. RST_N pulse low for 1.5ms
-10. SHD_N low
+9. SHD_N low
+10. RST_N pulse low for 1.5ms
 
-Values for Panel Settings (PSR), Power Settings (PWR), Frame Rate Contol (FRC) are always the same.
+### Update Display Sequence
 
-LUTV, LUT_KK, LUT_KW varies with the last 6 bytes usually 00h except for the all-black display sequence during power-on.
-
-### Steps to Update Display
+After startup the MCU will periodically read the Sensor and sets on/off state of the segments. Each **Update Display Sequence** can only turn on or off segments but can't both turn off some and turn on some segments. So the **Update Display Sequence** needs to run twice: (1) turn off segments that shouldn't be on (2) turn on segments that should be on.
 
 1. Send low pulse on RST_N 0.5ms
 
@@ -163,13 +154,21 @@ LUTV, LUT_KK, LUT_KW varies with the last 6 bytes usually 00h except for the all
 
 9. Send: LUTV, LUT_KK, LUT_KW
 
+   - The LUT define the timing and voltages for turning on/off the segments
+   - There are 3 sets of LUT values
+     1. LUT values to fully clear the display by turning on and then off all the segments
+     2. LUT values to turn off segments
+     3. LUT values to turn on segments
+
 10. Send: Data Start Transmission (DTM)
 
-    - Datasheet:
+  - Datasheet:
 
-      > Note that users must send the full 17-byte command at once. If less than a 17-byte command is sent, the contents of the previous_data register will be incorrect. In this case the outcome will be that the result of the data comparison between the new_data register and the previous_data register will be incorrect.
+    > Note that users must send the full 17-byte command at once. If less than a 17-byte command is sent, the contents of the previous_data register will be incorrect. In this case the outcome will be that the result of the data comparison between the new_data register and the previous_data register will be incorrect.
 
-    - Logic analyzer capture shows DTM command is consistently 14 bytes.
+  - Logic analyzer capture shows DTM command is consistently 14 bytes.
+
+  - Testing with custom code, DTM command can include any number of bytes (tested by sending 0 0x00 and 100 0x00). Any missing bytes seem to be assume is 0x00.
 
 11. Send: Data Stop (DSP)
 
@@ -189,3 +188,23 @@ LUTV, LUT_KK, LUT_KW varies with the last 6 bytes usually 00h except for the all
 
 15. Send: Charge Pump OFF (CPOF)
 
+## Segments
+
+![segments](images/segments.jpg)
+
+#### Segment 94
+
+Segment 94 turns on the parts of the display that are always on during normal usage:
+
+- Degree symbol and common parts of C and F
+- Decimal
+- Side of faces
+- Percent sign
+
+![segment-94](images/segment-94.jpg)
+
+#### Segment 96
+
+Segment 96 is the "background"
+
+![segment-96](images/segment-96.jpg)
