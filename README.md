@@ -1,6 +1,10 @@
 
 # MHO-C201 Teardown
 
+Mijia MHO-C201
+
+Xiaomi Miaomiaoce MMC-C201
+
 ## Schematic
 
 ![schematic](images/schematic.png)
@@ -13,21 +17,15 @@
 
     - Except the MCU here seems to send a 14-byte DTM command whereas the datasheet says 17 bytes are required otherwise "the result of the data comparison between the new_data register and the previous_data register will be incorrect."
 
-  - Segments: visually there are 84 segments (TODO: confirm).
-
-    - The HT16E07 supports 120 segments. Based on the logic analyzer captures, the DTM command sent is 14 bytes composed of 1 command-type byte followed 13 bytes of data. This means this display probably has at most 104 segments  (8 segments per byte * 13 bytes).
-
   - Pins (from "top")
-    1. VDL
+  1. VDL
        - From HT16E07 datasheet:
-         - 2.75V to 3.25V
-         - Driver low supply voltage – bypass to GND with 1μF capacitor
+       - >  Driver low supply voltage – bypass to GND with 1μF capacitor
        - Connected to capacitor at **C3**.
        - Measured voltage: 3.4V.
     2. VDH
        - From HT16E07 datasheet:
          - > Driver high supply voltage – bypass to GND with 1μF capacitor
-         - > On startup **Panel Setting (PSR)** command sets to black/white. When black/white:  "VDH is fixed to 12V and VDL is set by the PWR command"
        - Connected to capacitor at **C2**.
        - Measured voltage 11.6V
     3. GND

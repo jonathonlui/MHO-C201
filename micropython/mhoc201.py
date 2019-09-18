@@ -1,6 +1,30 @@
 from machine import idle
 from ht16e07 import HT16E07
 
+DIGIT_TO_SEGMENTS = [
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1],
+    [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
+    [0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0],
+]
+
+TOP_SEGMENTS = {
+    'hundreds': [62],
+    'tens': [85, 86, 92, 87, 82, 76, 58, 60, 72, 84, 83],
+    'ones': [88, 89, 91, 90, 77, 75, 70, 71, 78, 79, 80],
+}
+
+BOTTOM_SEGMENTS = {
+    'tens': [41, 43, 39, 35, 31, 4, 0, 3, 37, 48, 33],
+    'ones': [25, 29, 21, 17, 7, 6, 1, 2, 5, 23, 19],
+}
+
 
 class MHOC201Display(HT16E07):
     # LUT values based on logic analyzer captures
@@ -82,6 +106,10 @@ class MHOC201Display(HT16E07):
         0x00, 0x00, 0x00,
         0x00, 0x00, 0x00,
     ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.next_values = bytearray([0xff] * 13)
 
     def on_with_default_settings(self):
         """Turns on charge pump and sets default panel and power settings"""
@@ -165,7 +193,60 @@ class MHOC201Display(HT16E07):
         self.off_with_default_settings()
 
     def clear(self):
-        self.update_white([0xff] * 13)
+        for i, _ in enumerate(self.next_values):
+            self.next_values[i] = 0xff
+        self.update_white(self.next_values)
 
     def fill(self):
-        self.update_black([0x00] * 13)
+        for i, _ in enumerate(self.next_values):
+            self.next_values[i] = 0x00
+        self.update_black(self.next_values)
+
+    def set_segment(self, segment_id, value):
+        self.next_values[segment_id // 8] = (
+            self.next_values[segment_id // 8] & ~(1 << (7 - segment_id % 8)) |
+            (value << (7 - segment_id % 8))
+        )
+
+    def _set_number(self, segments, value, zeropad, flush):
+        if value is None:
+            for segment_ids in segments.values():
+                for segment_id in segment_ids:
+                    self.set_segment(segment_id, 1)
+        else:
+            value_str = str(value)
+
+            if len(value_str) > 1:
+                for i, val in enumerate(DIGIT_TO_SEGMENTS[int(value_str[-2])]):
+                    self.set_segment(segments['tens'][i], val)
+            elif zeropad:
+                for i, val in enumerate(DIGIT_TO_SEGMENTS[0]):
+                    self.set_segment(segments['tens'][i], val)
+            else:
+                for i in range(len(segments['tens'])):
+                    self.set_segment(segments['tens'][i], 1)
+
+            if value_str:
+                ones_value = int(value_str[-1])
+                for i, val in enumerate(DIGIT_TO_SEGMENTS[ones_value]):
+                    self.set_segment(segments['ones'][i], val)
+            elif zeropad:
+                for i, val in enumerate(DIGIT_TO_SEGMENTS[0]):
+                    self.set_segment(segments['ones'][i], val)
+            else:
+                for i in range(len(segments['ones'])):
+                    self.set_segment(segments['ones'][i], 1)
+        if flush:
+            self.flush()
+
+    def set_top_number(self, value, zeropad=False, flush=False):
+        self.set_segment(TOP_SEGMENTS['hundreds'][0],
+                         0 if value and value > 99 else 1)
+        self._set_number(TOP_SEGMENTS, value, zeropad, flush)
+
+    def set_bottom_number(self, value, zeropad=False, flush=False):
+        self._set_number(BOTTOM_SEGMENTS, value, zeropad, flush)
+
+    def flush(self):
+        self.update_white(self.next_values)
+        self.update_black(self.next_values)
