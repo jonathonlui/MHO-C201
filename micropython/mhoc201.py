@@ -227,7 +227,7 @@ class MHOC201Display(HT16E07):
                 for segment_id in segment_ids:
                     self.set_segment(segment_id, 1)
         else:
-            value_str = str(value)
+            value_str = str(round(value))
 
             tens_value = int(value_str[-2]) if len(value_str) > 1 else None
             self._set_digit(segments['tens'], tens_value, zeropad)
