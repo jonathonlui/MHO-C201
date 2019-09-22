@@ -1,9 +1,18 @@
+# Reverse Engineering a MHO-C201
 
-# MHO-C201 Teardown
+The **Mijia MHO-C201** (also sold as  **Xiaomi Miaomiaoce MMC-C201**) is thermometer and hygrometer display with a segmented e-ink screen.
 
-Mijia MHO-C201
+A multimeter in continuity mode was used to trace the connections between the stock MCU (a Holtek HT66F0182) and the display controller (a Holtek HT16E07). A schematic was created using [Kicad](http://kicad-pcb.org/).
 
-Xiaomi Miaomiaoce MMC-C201
+To determine the purpose of each connection, a logic analyzer was used to capture the signals (see [`./captures`](./captures)) between the MCU and display controller. The captures were compared to the HT16E07 datasheet which confirmed the display controller behaves like a HT16E07.
+
+The MCU was then removed (using flush cutters but would have been nicer to desolder) and thin, 30-awg wires were soldered to the now-empty MCU pads. The other end of the wires connected to a [NodeMCU ESP8266](https://www.nodemcu.com/index_en.html).
+
+A basic Micropython library was written and tested using the ESP8266.
+
+## Micropython Library
+
+A Micropython library to control the display is in: [./micropython](./micropython).
 
 ## Schematic
 
@@ -23,25 +32,30 @@ Xiaomi Miaomiaoce MMC-C201
        - >  Driver low supply voltage – bypass to GND with 1μF capacitor
        - Connected to capacitor at **C3**.
        - Measured voltage: 3.4V.
+       
     2. VDH
        - From HT16E07 datasheet:
+         
          - > Driver high supply voltage – bypass to GND with 1μF capacitor
        - Connected to capacitor at **C2**.
        - Measured voltage 11.6V
+       
     3. GND
+
     4. VDD
 
-- Datasheet: 2.4 to 3.6V
+       > Datasheet: 2.4 to 3.6V
 
-    5. SHD_N
-   - From datasheet:
+  5. SHD_N
+  - From datasheet:
 
-     - > Charge pump enable pin – low shutdown
+    - > Charge pump enable pin – low shutdown
 
-    6. RST_N
-    7. SDA (data)
-    8. SCL (clock)
-    9. CSB (latch) (Low during data clock pulses, pulses high after 9 clocks pulses)
+   6. RST_N
+   7. SDA (data)
+   8. SCL (clock)
+   9. CSB (latch) (Low during data clock pulses, pulses high after 9 clocks pulses)
+
 10. BUSY_N
 
     - From datasheet:
