@@ -208,6 +208,19 @@ class MHOC201Display(HT16E07):
             (value << (7 - segment_id % 8))
         )
 
+    def _set_digit(self, segments, value, zeropad):
+        if value is not None:
+            for i, val in enumerate(DIGIT_TO_SEGMENTS[value]):
+                self.set_segment(segments[i], val)
+        elif zeropad:
+            # Set segments to show '0'
+            for i, val in enumerate(DIGIT_TO_SEGMENTS[0]):
+                self.set_segment(segments[i], val)
+        else:
+            # Turn off all segments
+            for seg in enumerate(segments):
+                self.set_segment(seg, 1)
+
     def _set_number(self, segments, value, zeropad, flush):
         if value is None:
             for segment_ids in segments.values():
@@ -216,26 +229,12 @@ class MHOC201Display(HT16E07):
         else:
             value_str = str(value)
 
-            if len(value_str) > 1:
-                for i, val in enumerate(DIGIT_TO_SEGMENTS[int(value_str[-2])]):
-                    self.set_segment(segments['tens'][i], val)
-            elif zeropad:
-                for i, val in enumerate(DIGIT_TO_SEGMENTS[0]):
-                    self.set_segment(segments['tens'][i], val)
-            else:
-                for i in range(len(segments['tens'])):
-                    self.set_segment(segments['tens'][i], 1)
+            tens_value = int(value_str[-2]) if len(value_str) > 1 else None
+            self._set_digit(segments['tens'], tens_value, zeropad)
 
-            if value_str:
-                ones_value = int(value_str[-1])
-                for i, val in enumerate(DIGIT_TO_SEGMENTS[ones_value]):
-                    self.set_segment(segments['ones'][i], val)
-            elif zeropad:
-                for i, val in enumerate(DIGIT_TO_SEGMENTS[0]):
-                    self.set_segment(segments['ones'][i], val)
-            else:
-                for i in range(len(segments['ones'])):
-                    self.set_segment(segments['ones'][i], 1)
+            ones_value = int(value_str[-1]) if value_str else None
+            self._set_digit(segments['ones'], ones_value, zeropad)
+
         if flush:
             self.flush()
 
