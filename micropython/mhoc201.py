@@ -57,6 +57,7 @@ FACES = {
     ],
     'happy': [
         FACE_EYES_TOP,
+        FACE_MOUTH_MIDDLE,
         FACE_MOUTH_BOTTOM,
     ],
     'neutral': [
