@@ -270,7 +270,7 @@ class MHOC201Display(HT16E07):
                 self.set_segment(segments[i], val)
         else:
             # Turn off all segments
-            for seg in enumerate(segments):
+            for seg in segments:
                 self.set_segment(seg, 1)
 
     def _set_number(self, segments, value, zeropad, flush):
