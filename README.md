@@ -1,5 +1,7 @@
 # Reverse Engineering a MHO-C201
 
+![example-count](images/example-count.gif)
+
 The **Mijia MHO-C201** (also sold as  **Xiaomi Miaomiaoce MMC-C201**) is thermometer and hygrometer display with a segmented e-ink screen.
 
 A multimeter in continuity mode was used to trace the connections between the stock MCU (a Holtek HT66F0182) and the display controller (a Holtek HT16E07). A schematic was created using [Kicad](http://kicad-pcb.org/).
@@ -9,6 +11,9 @@ To determine the purpose of each connection, a logic analyzer was used to captur
 The MCU was then removed (using flush cutters but would have been nicer to desolder) and thin, 30-awg wires were soldered to the now-empty MCU pads. The other end of the wires connected to a [NodeMCU ESP8266](https://www.nodemcu.com/index_en.html).
 
 A basic Micropython library was written and tested using the ESP8266.
+
+![wired](images/wired.jpg)
+
 
 ## Micropython Library
 
