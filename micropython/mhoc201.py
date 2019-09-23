@@ -1,3 +1,4 @@
+from micropython import const
 from machine import idle
 from ht16e07 import HT16E07
 
@@ -18,11 +19,61 @@ TOP_SEGMENTS = {
     'hundreds': [62],
     'tens': [85, 86, 92, 87, 82, 76, 58, 60, 72, 84, 83],
     'ones': [88, 89, 91, 90, 77, 75, 70, 71, 78, 79, 80],
+    'tenths': [69, 73, 74, 68, 66, 54, 50, 52, 56, 67, 64]
 }
 
 BOTTOM_SEGMENTS = {
     'tens': [41, 43, 39, 35, 31, 4, 0, 3, 37, 48, 33],
     'ones': [25, 29, 21, 17, 7, 6, 1, 2, 5, 23, 19],
+}
+
+FACE_MOUTH_BOTTOM = const(9)
+FACE_MOUTH_MIDDLE = const(10)
+FACE_MOUTH_TOP = const(11)
+
+FACE_EYES_BOTTOM = const(12)
+FACE_EYES_TOP = const(13)
+
+FACE_DROPS_LEFT_2 = const(8)
+FACE_DROPS_RIGHT_3 = const(14)
+FACE_ANGRY_SUN = const(15)
+
+CFE_BOTTOM = const(81)
+CFE_MIDDLE = const(93)
+PERCENT_FACESIDES_DEGREE_DECIMAL_CFE_TOPLEFT = const(94)
+BATTERY_X = const(95)
+BACKGROUND = const(96)
+
+FACES = {
+    'all': [
+        FACE_MOUTH_BOTTOM,
+        FACE_MOUTH_MIDDLE,
+        FACE_MOUTH_TOP,
+        FACE_DROPS_LEFT_2,
+        FACE_DROPS_RIGHT_3,
+        FACE_EYES_BOTTOM,
+        FACE_EYES_TOP,
+        FACE_ANGRY_SUN,
+    ],
+    'happy': [
+        FACE_EYES_TOP,
+        FACE_MOUTH_BOTTOM,
+    ],
+    'neutral': [
+        FACE_EYES_TOP,
+        FACE_EYES_BOTTOM,
+        FACE_MOUTH_MIDDLE,
+    ],
+    'sad': [
+        FACE_EYES_TOP,
+        FACE_EYES_BOTTOM,
+        FACE_MOUTH_TOP,
+    ],
+    'angry': [
+        FACE_EYES_BOTTOM,
+        FACE_MOUTH_TOP,
+        FACE_ANGRY_SUN,
+    ],
 }
 
 
@@ -245,6 +296,27 @@ class MHOC201Display(HT16E07):
 
     def set_bottom_number(self, value, zeropad=False, flush=False):
         self._set_number(BOTTOM_SEGMENTS, value, zeropad, flush)
+
+    def set_face(self, face_name, flush=False):
+        if face_name is not None and face_name not in FACES:
+            raise ValueError('Invalid face_name: {!r}. Valid values are: {}'
+                             .format(face_name, [None] + list(FACES.keys())))
+
+        # Hide all face segments
+        for seg in FACES['all']:
+            self.set_segment(seg, 1)
+        self.set_segment(PERCENT_FACESIDES_DEGREE_DECIMAL_CFE_TOPLEFT, 1)
+
+        # Show segments
+        if face_name is not None:
+            for seg in FACES[face_name]:
+                self.set_segment(seg, 0)
+            # Show the side of the face.
+            # This also shows percent and other segments :(
+            self.set_segment(PERCENT_FACESIDES_DEGREE_DECIMAL_CFE_TOPLEFT, 0)
+
+        if flush:
+            self.flush()
 
     def flush(self):
         self.update_white(self.next_values)
