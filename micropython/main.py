@@ -1,2 +1,0 @@
-import example
-example.count()
