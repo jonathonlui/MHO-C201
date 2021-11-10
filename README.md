@@ -4,7 +4,7 @@
 
 The **Mijia MHO-C201** (also sold as  **Xiaomi Miaomiaoce MMC-C201**) is thermometer and hygrometer display with a segmented e-ink screen.
 
-A multimeter in continuity mode was used to trace the connections between the stock MCU (a Holtek HT66F0182) and the display controller (a Holtek HT16E07). A schematic was created using [Kicad](http://kicad-pcb.org/).
+A multimeter in continuity mode was used to trace the connections between the stock MCU (a Holtek HT66F0182) and the display controller (a Holtek HT16E07). A schematic was created using [Kicad](http://kicad.org/).
 
 To determine the purpose of each connection, a logic analyzer was used to capture the signals (see [`./captures`](./captures)) between the MCU and display controller. The captures were compared to the HT16E07 datasheet which confirmed the display controller behaves like a HT16E07.
 
